@@ -1,63 +1,37 @@
 import { useState } from "react";
-
-// input | textAra | select
-// value , onChange , options
-const InputTypes = ({ inputType = "input", ...otherProps }) => {
-  switch (inputType) {
-    case "input":
-      return (
-        <input
-          type="text"
-          value={otherProps.value}
-          onChange={(e) => otherProps.onChange(e.target.value)}
-        />
-      );
-    case "textAra":
-      return (
-        <textarea
-          type="text"
-          value={otherProps.value}
-          onChange={(e) => otherProps.onChange(e.target.value)}
-        />
-      );
-    case "select":
-      return (
-        <select
-          value={otherProps.value}
-          onChange={(e) => {
-            debugger;
-            otherProps.onChange(e.target.value);
-          }}
-        >
-          {otherProps.options?.map((x) => (
-            <option key={x} value={x}>
-              {x}
-            </option>
-          ))}
-        </select>
-      );
-    default:
-      break;
-  }
-};
-
-const InputControl = ({ label, ...otherProps }) => {
-  return (
-    <div>
-      <label>
-        {label}
-        <InputTypes {...otherProps} />
-      </label>
-    </div>
-  );
-};
+import { InputControl } from "./Components";
+import { validateField } from "./Utilties/validation";
 
 function App() {
   const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
-    favFruit: "",
+    firstName: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [
+        // { name: "min", value: 2 },
+        // { name: "max", value: 10 },
+        { name: "between", value: [2, 10] },
+      ],
+    },
+    lastName: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "max", value: 5 }],
+    },
+    address: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "regex", value: /^[0-9]/ }],
+    },
+    favFruit: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "required", value: true }],
+    },
   });
 
   const onSubmit = (e) => {
@@ -65,40 +39,49 @@ function App() {
     console.log("user", user);
   };
 
-  const onChange = (fieldKey, value) =>
+  const onChange = (fieldKey, value) => {
     setUser((_user) => ({
       ..._user,
-      [fieldKey]: value,
+      [fieldKey]: {
+        ..._user[fieldKey],
+        value,
+        errorMessage: validateField(_user[fieldKey].rules, value),
+      },
     }));
+  };
 
   return (
     <div>
       <form onSubmit={onSubmit}>
         <InputControl
           label="First Name"
-          value={user.firstName}
+          value={user.firstName.value}
           onChange={(value) => onChange("firstName", value)}
+          errorMessage={user.firstName.errorMessage}
         />
 
         <InputControl
           label="Last Name"
-          value={user.lastName}
+          value={user.lastName.value}
           onChange={(value) => onChange("lastName", value)}
+          errorMessage={user.lastName.errorMessage}
         />
 
         <InputControl
           label="Address"
-          value={user.address}
+          value={user.address.value}
           inputType="textAra"
           onChange={(value) => onChange("address", value)}
+          errorMessage={user.address.errorMessage}
         />
 
         <InputControl
           label="Fav Fruit"
-          value={user.favFruit}
+          value={user.favFruit.value}
           inputType="select"
           options={["A", "B", "C", "D"]}
           onChange={(value) => onChange("favFruit", value)}
+          errorMessage={user.favFruit.errorMessage}
         />
         <input type="submit" value="Submit" />
       </form>
