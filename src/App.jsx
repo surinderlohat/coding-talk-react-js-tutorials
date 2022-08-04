@@ -1,74 +1,53 @@
 import { useState } from "react";
-
-const InputTypes = ({ inputType = "input", value, onChange, options }) => {
-  switch (inputType) {
-    case "input":
-      return (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    case "testArea":
-      return (
-        <textarea
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    case "select":
-      return (
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          {options.map((x) => (
-            <option key={x} value={x}>
-              {x}
-            </option>
-          ))}
-        </select>
-      );
-    default:
-      break;
-  }
-};
-
-// input type can be input | testArea | select
-const InputControl = ({ label, ...otherProps }) => {
-  return (
-    <div>
-      <label>
-        {label}
-        <InputTypes {...otherProps} />
-      </label>
-    </div>
-  );
-};
+import { InputControl } from "./Components";
+import { validateField } from "./Utilties/validation";
 
 function App() {
   const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
-    favFruit: "",
+    firstName: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [
+        // { name: "min", value: 2 },
+        // { name: "max", value: 10 },
+        { name: "between", value: [2, 10] },
+      ],
+    },
+    lastName: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "max", value: 5 }],
+    },
+    address: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "regex", value: /^[0-9]/ }],
+    },
+    favFruit: {
+      value: "",
+      hasError: false,
+      errorMessage: false,
+      rules: [{ name: "required", value: true }],
+    },
   });
-
-  // const [firstName, setFirstName] = useState("");
-  // const [lastName, setLastName] = useState("");
-  // const [address, setAddress] = useState("");
-  // const [favFruit, setFavFruit] = useState("");
-
-  const updateUserFields = (key, value) =>
-    setUser((user) => {
-      return { ...user, [key]: value };
-    });
 
   const onSubmit = (e) => {
     e.preventDefault();
     console.log("user", user);
-    // console.log("lastName", lastName);
-    // console.log("address", address);
-    // console.log("favFruit", favFruit);
+  };
+
+  const onChange = (fieldKey, value) => {
+    setUser((_user) => ({
+      ..._user,
+      [fieldKey]: {
+        ..._user[fieldKey],
+        value,
+        errorMessage: validateField(_user[fieldKey].rules, value),
+      },
+    }));
   };
 
   return (
@@ -76,29 +55,33 @@ function App() {
       <form onSubmit={onSubmit}>
         <InputControl
           label="First Name"
-          value={user.firstName}
-          onChange={(value) => updateUserFields("firstName", value)}
+          value={user.firstName.value}
+          onChange={(value) => onChange("firstName", value)}
+          errorMessage={user.firstName.errorMessage}
         />
 
         <InputControl
           label="Last Name"
-          value={user.lastName}
-          onChange={(value) => updateUserFields("lastName", value)}
+          value={user.lastName.value}
+          onChange={(value) => onChange("lastName", value)}
+          errorMessage={user.lastName.errorMessage}
         />
 
         <InputControl
           label="Address"
-          value={user.address}
-          inputType="testArea"
-          onChange={(value) => updateUserFields("address", value)}
+          value={user.address.value}
+          inputType="textAra"
+          onChange={(value) => onChange("address", value)}
+          errorMessage={user.address.errorMessage}
         />
 
         <InputControl
           label="Fav Fruit"
-          value={user.favFruit}
+          value={user.favFruit.value}
           inputType="select"
-          options={["Grapefruit", "Lime", "Coconut", "Mango"]}
-          onChange={(value) => updateUserFields("favFruit", value)}
+          options={["A", "B", "C", "D"]}
+          onChange={(value) => onChange("favFruit", value)}
+          errorMessage={user.favFruit.errorMessage}
         />
         <input type="submit" value="Submit" />
       </form>
